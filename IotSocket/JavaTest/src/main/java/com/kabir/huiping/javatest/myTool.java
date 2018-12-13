@@ -12,4 +12,9 @@ class myTool {
         return buf;
     }
 
+    private static void test() {
+        System.out.println(myTool.print9(9));
+    }
+
+
 }
