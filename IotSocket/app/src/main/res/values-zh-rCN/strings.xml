@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">物联网</string>
+    <string name="button">确定</string>
+    <string name="test">计数是</string>
+</resources>

@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">IotSocket</string>
     <string name="button">Enter</string>
+    <string name="test">Count is</string>
 </resources>
