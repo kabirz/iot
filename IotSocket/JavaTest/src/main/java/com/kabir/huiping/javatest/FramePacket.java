@@ -7,7 +7,10 @@ import java.util.Arrays;
 
 public class FramePacket {
     final static private int MAGIC = 0xdeaddead;
+    final static private byte LITTLE = 0x11;
+    final static private byte BIG = 0x22;
 
+    private byte endian;
     private int magic;
     private int id;
     private char flags;
@@ -15,6 +18,7 @@ public class FramePacket {
     private byte[] bufffer;
     private int nameLen;
     private String name;
+    private boolean littleEndian;
 
     private static String byteArrayToStr(byte[] b, int len) {
         char[] buf = new char[len];
@@ -88,15 +92,47 @@ public class FramePacket {
         this.name = name;
     }
 
+    public boolean isLittleEndian() {
+        return littleEndian;
+    }
+
+    public void setLittleEndian(boolean littleEndian) {
+        this.littleEndian = littleEndian;
+    }
+
     public void parsePacket(DataInputStream dis) throws IOException {
-        magic = Integer.reverseBytes(dis.readInt());
+        endian = dis.readByte();
+        if (endian == LITTLE)
+            setLittleEndian(true);
+        else if (endian == BIG)
+            setLittleEndian(false);
+        else {
+            System.err.println("Error big/little endian flags");
+            throw new IOException();
+        }
+
+        magic = dis.readInt();
+        if (littleEndian)
+            magic = Integer.reverseBytes(magic);
         checkMagic();
-        id = Integer.reverseBytes(dis.readInt());
-        flags = Character.reverseBytes(dis.readChar());
-        bufferLen = Integer.reverseBytes(dis.readInt());
+
+        id = dis.readInt();
+        if (littleEndian)
+            id = Integer.reverseBytes(id);
+
+        flags = dis.readChar();
+        if (littleEndian)
+            flags = Character.reverseBytes(flags);
+
+        bufferLen = dis.readInt();
+        if (littleEndian)
+            bufferLen = Integer.reverseBytes(bufferLen);
         bufffer = new byte[bufferLen];
+
         int len = dis.read(bufffer);
-        nameLen = Integer.reverseBytes(dis.readInt());
+        nameLen = dis.readInt();
+        if (littleEndian)
+            nameLen = Integer.reverseBytes(nameLen);
         byte[] _name = new byte[nameLen];
         name = byteArrayToStr(_name, dis.read(_name));
 
@@ -123,7 +159,8 @@ public class FramePacket {
         }
     }
 
-    public void writePacketToFile(DataOutputStream dos) throws IOException {
+    public void writeLittlePacketToFile(DataOutputStream dos) throws IOException {
+        dos.writeByte(endian);
         dos.writeInt(Integer.reverseBytes(magic));
         dos.writeInt(Integer.reverseBytes(id));
         dos.writeChar(Character.reverseBytes(flags));
@@ -133,13 +170,25 @@ public class FramePacket {
         dos.write(strToByteArray(name));
     }
 
+    public void writeBigPacketToFile(DataOutputStream dos) throws IOException {
+        dos.writeByte(endian);
+        dos.writeInt(magic);
+        dos.writeInt(id);
+        dos.writeChar(flags);
+        dos.writeInt(bufferLen);
+        dos.write(bufffer);
+        dos.writeInt(nameLen);
+        dos.write(strToByteArray(name));
+    }
+
     public void dump() {
-        System.out.println("MAGIC:      0x" + Integer.toHexString(magic));
-        System.out.println("ID:         " + id);
-        System.out.println("Flags:      " + flags);
-        System.out.println("DataSize:   " + bufferLen);
-        System.out.println("Data:       " + Arrays.toString(bufffer));
-        System.out.println("NameSize:   " + nameLen);
-        System.out.println("Name:       " + name);
+        System.out.println("Little-Endian:    " + littleEndian);
+        System.out.println("MAGIC:            0x" + Integer.toHexString(magic));
+        System.out.println("ID:               " + id);
+        System.out.println("Flags:            " + flags);
+        System.out.println("DataSize:         " + bufferLen);
+        System.out.println("Data:             " + Arrays.toString(bufffer));
+        System.out.println("NameSize:         " + nameLen);
+        System.out.println("Name:             " + name);
     }
 }

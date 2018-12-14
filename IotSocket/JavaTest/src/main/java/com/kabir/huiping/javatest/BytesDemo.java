@@ -11,8 +11,10 @@ public class BytesDemo {
         FramePacket packet = new FramePacket();
         try {
             packet.parsePacket(new DataInputStream(new FileInputStream("/tmp/dat.txt")));
-            packet.writePacketToFile(new DataOutputStream(new FileOutputStream("/tmp/out.txt")));
-            System.out.println(packet);
+            if (packet.isLittleEndian())
+                packet.writeLittlePacketToFile(new DataOutputStream(new FileOutputStream("/tmp/out.txt")));
+            else
+                packet.writeBigPacketToFile(new DataOutputStream(new FileOutputStream("/tmp/out.txt")));
             packet.dump();
         } catch (IOException e) {
             e.printStackTrace();
