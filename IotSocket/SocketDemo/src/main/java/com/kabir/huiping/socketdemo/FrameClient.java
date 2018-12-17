@@ -1,0 +1,26 @@
+package com.kabir.huiping.socketdemo;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+
+public class FrameClient {
+    public static void main(String[] args) {
+        try {
+            Socket s = new Socket("localhost", 12345);
+            byte[] a = {(byte)'M',2};
+            FramePacket fp = new FramePacket(true, FrameMagic.KEY_MAGIC, FrameId.KEY_ID, a.length, a);
+            DataOutputStream dos = new DataOutputStream(s.getOutputStream());
+            fp.dataOutput(dos);
+            dos.flush();
+            fp.setId(FrameId.EXIT_ID);
+            fp.dataOutput(dos);
+            DataInputStream dis = new DataInputStream(s.getInputStream());
+            fp.parse(dis);
+            System.out.println(fp);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
