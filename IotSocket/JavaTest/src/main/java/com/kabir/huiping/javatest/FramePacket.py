@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
+import argparse
 import random
 import sys
-import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--input", '-i', help="input file")
@@ -27,8 +27,8 @@ class framepacket():
         self.byteorder = order
 
     def insertdata(self, data, name):
-        if type(data) != str or type(name) != str:
-            sys.stderr.writelines("Error data and name type!")
+        if type(name) != str:
+            sys.stderr.writelines("Error name type!")
             sys.exit(-1)
 
         self.endian = framepacket.BIG if self.byteorder == 'big' else framepacket.LITTLE
@@ -40,15 +40,20 @@ class framepacket():
         self.nlen = len(name)
 
     def generatorpacket(self):
-        with open(self.output, 'wb') as f:
-            f.write(self.endian.to_bytes(1, byteorder=self.byteorder))
-            f.write(framepacket.MAGIC.to_bytes(4, byteorder=self.byteorder))
-            f.write(self.id.to_bytes(4, byteorder=self.byteorder))
-            f.write(self.flags.to_bytes(2, byteorder=self.byteorder))
-            f.write(self.dlen.to_bytes(4, byteorder=self.byteorder))
-            f.write(self.data.encode())
-            f.write(self.nlen.to_bytes(4, byteorder=self.byteorder))
-            f.write(self.name.encode())
+        buf =b''
+        buf += self.endian.to_bytes(1, byteorder=self.byteorder)
+        buf += framepacket.MAGIC.to_bytes(4, byteorder=self.byteorder)
+        buf += self.id.to_bytes(4, byteorder=self.byteorder)
+        buf += self.flags.to_bytes(2, byteorder=self.byteorder)
+        buf += self.dlen.to_bytes(4, byteorder=self.byteorder)
+        buf += self.data
+        buf += self.nlen.to_bytes(4, byteorder=self.byteorder)
+        buf += self.name.encode()
+
+        if self.output:
+            with open(self.output, 'wb') as f:
+                f.write(buf)
+        return buf
 
     def _getdata(self, buf, index, len):
         return int.from_bytes(buf[index: index + len], byteorder=self.byteorder)

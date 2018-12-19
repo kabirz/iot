@@ -1,4 +1,8 @@
-package com.kabir.huiping.socketdemo;
+package com.kabir.huiping.test;
+
+import com.kabir.huiping.socketdemo.FrameId;
+import com.kabir.huiping.socketdemo.FrameMagic;
+import com.kabir.huiping.socketdemo.FramePacket;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

@@ -1,7 +1,7 @@
 package com.kabir.huiping.socketdemo;
 
 import java.io.DataOutputStream;
-import java.io.IOException;
+import java.util.Random;
 
 public class FrameSendThread extends Thread {
     private FrameCallBack cb;
@@ -17,8 +17,10 @@ public class FrameSendThread extends Thread {
             cb.getC().await();
             cb.getLock().unlock();
             DataOutputStream dos = new DataOutputStream(cb.getClient().getOutputStream());
-            byte[] a = {1, 2};
-            FramePacket fp = new FramePacket(true, FrameMagic.KEY_MAGIC, FrameId.EXIT_ID, a.length, a);
+            byte[] a = new byte[4];
+            Random rad = new Random();
+            rad.nextBytes(a);
+            FramePacket fp = new FramePacket(true, FrameMagic.KEY_MAGIC, FrameId.DATA_ID, a.length, a);
             fp.dataOutput(dos);
             System.out.println(fp);
         } catch (Exception e) {

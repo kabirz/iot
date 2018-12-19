@@ -17,14 +17,14 @@ public class FrameReceiverThread extends Thread {
                 DataInputStream dis = new DataInputStream(cb.getClient().getInputStream());
                 FramePacket fp = new FramePacket();
                 fp.parse(dis);
+                fp.handle();
+                System.out.println(fp);
                 if (fp.getId() == FrameId.EXIT_ID) {
                     cb.getLock().lock();
                     cb.getC().signal();
                     cb.getLock().unlock();
                     break;
                 }
-                fp.handle();
-                System.out.println(fp);
             } catch (IOException e) {
                 e.printStackTrace();
             }

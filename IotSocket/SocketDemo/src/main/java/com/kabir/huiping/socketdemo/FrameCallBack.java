@@ -1,8 +1,6 @@
 package com.kabir.huiping.socketdemo;
 
 import java.net.Socket;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 

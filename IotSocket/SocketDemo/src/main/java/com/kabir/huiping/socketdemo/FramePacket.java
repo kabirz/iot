@@ -1,6 +1,8 @@
 package com.kabir.huiping.socketdemo;
 
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -104,6 +106,7 @@ public class FramePacket {
                 dos.writeInt(size);
             }
             dos.write(data);
+            dos.flush();
     }
     @Override
     public String toString() {

@@ -6,9 +6,9 @@ import java.io.IOException;
 import java.util.Arrays;
 
 public class FramePacket {
-    final static private int MAGIC = 0xdeaddead;
-    final static private byte LITTLE = 0x11;
-    final static private byte BIG = 0x22;
+    final static int MAGIC = 0xdeaddead;
+    final static byte LITTLE = 0x11;
+    final static byte BIG = 0x22;
 
     private byte endian;
     private int magic;
@@ -20,20 +20,18 @@ public class FramePacket {
     private String name;
     private boolean littleEndian;
 
-    private static String byteArrayToStr(byte[] b, int len) {
-        char[] buf = new char[len];
-        for (int i = 0; i < len; i++) {
-            buf[i] = (char) b[i];
-        }
-        return String.copyValueOf(buf);
+    public FramePacket() {
     }
 
-    private static byte[] strToByteArray(String a) {
-        byte[] buf = new byte[a.length()];
-        for (int i = 0; i < buf.length; i++) {
-            buf[i] = (byte) a.toCharArray()[i];
-        }
-        return buf;
+    public FramePacket(boolean littleEndian, int id, char flags, int bufferLen, byte[] bufffer, int nameLen, String name) {
+        endian = littleEndian ? LITTLE : BIG;
+        magic = MAGIC;
+        this.id = id;
+        this.flags = flags;
+        this.bufferLen = bufferLen;
+        this.bufffer = bufffer;
+        this.nameLen = nameLen;
+        this.name = name;
     }
 
     public int getMagic() {
@@ -100,6 +98,14 @@ public class FramePacket {
         this.littleEndian = littleEndian;
     }
 
+    public byte getEndian() {
+        return endian;
+    }
+
+    public void setEndian(byte endian) {
+        this.endian = endian;
+    }
+
     public void parsePacket(DataInputStream dis) throws IOException {
         endian = dis.readByte();
         if (endian == LITTLE)
@@ -134,21 +140,22 @@ public class FramePacket {
         if (littleEndian)
             nameLen = Integer.reverseBytes(nameLen);
         byte[] _name = new byte[nameLen];
-        name = byteArrayToStr(_name, dis.read(_name));
+        len = dis.read(_name);
+        name = new String(_name);
 
     }
 
     @Override
     public String toString() {
-        checkMagic();
-        return "myPacket{" +
-                "magic=0x" + Integer.toHexString(magic) +
+        return "FramePacket{" +
+                "magic=" + Integer.toHexString(magic) +
                 ", id=" + id +
                 ", flags=" + flags +
                 ", bufferLen=" + bufferLen +
                 ", bufffer=" + Arrays.toString(bufffer) +
                 ", nameLen=" + nameLen +
                 ", name='" + name + '\'' +
+                ", littleEndian=" + littleEndian +
                 '}';
     }
 
@@ -159,26 +166,34 @@ public class FramePacket {
         }
     }
 
-    public void writeLittlePacketToFile(DataOutputStream dos) throws IOException {
+    public void writePacket(DataOutputStream dos) throws IOException {
         dos.writeByte(endian);
-        dos.writeInt(Integer.reverseBytes(magic));
-        dos.writeInt(Integer.reverseBytes(id));
-        dos.writeChar(Character.reverseBytes(flags));
-        dos.writeInt(Integer.reverseBytes(bufferLen));
+        if (littleEndian) {
+            dos.writeInt(Integer.reverseBytes(magic));
+            dos.writeInt(Integer.reverseBytes(id));
+            dos.writeChar(Character.reverseBytes(flags));
+            dos.writeInt(Integer.reverseBytes(bufferLen));
+        } else {
+            dos.writeInt(magic);
+            dos.writeInt(id);
+            dos.writeChar(flags);
+            dos.writeInt(bufferLen);
+        }
         dos.write(bufffer);
-        dos.writeInt(Integer.reverseBytes(nameLen));
-        dos.write(strToByteArray(name));
+        if (littleEndian) {
+            dos.writeInt(Integer.reverseBytes(nameLen));
+        } else {
+            dos.writeInt(nameLen);
+        }
+        dos.write(name.getBytes());
     }
 
-    public void writeBigPacketToFile(DataOutputStream dos) throws IOException {
-        dos.writeByte(endian);
-        dos.writeInt(magic);
-        dos.writeInt(id);
-        dos.writeChar(flags);
-        dos.writeInt(bufferLen);
-        dos.write(bufffer);
-        dos.writeInt(nameLen);
-        dos.write(strToByteArray(name));
+    public  void doWork() {
+        if (id == SocketId.KEY) {
+            SocketKey key = new SocketKey();
+            key.parse(bufffer);
+            key.doWork();
+        }
     }
 
     public void dump() {

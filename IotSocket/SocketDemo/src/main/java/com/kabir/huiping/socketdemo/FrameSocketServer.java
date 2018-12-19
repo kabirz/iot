@@ -4,8 +4,9 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class FrameSocketServer {
-    public static void main(String[] args) {
+public class FrameSocketServer extends Thread {
+    @Override
+    public void run() {
         try {
             ServerSocket ss = new ServerSocket(12345);
             System.out.println("Tcp Server is on.....");
